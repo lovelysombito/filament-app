@@ -6,6 +6,8 @@ use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -25,33 +27,38 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('first_name')
+                TextInput::make('first_name')
                     ->required()
                     ->maxLength(255)
                     ->dehydrateStateUsing(fn ($state) => strtoupper($state))
                     ->live(),
-                Forms\Components\TextInput::make('last_name')
+                TextInput::make('last_name')
                     ->required()
                     ->maxLength(255)
                     ->dehydrateStateUsing(fn ($state) => strtoupper($state))
                     ->live(),
-                Forms\Components\TextInput::make('email')
+                TextInput::make('email')
                     ->email()
                     ->required()
                     ->unique(ignoreRecord: true),
-                Forms\Components\TextInput::make('password')
+                TextInput::make('password')
                     ->password()
                     ->required()
                     ->maxLength(255)
                     ->dehydrateStateUsing(fn ($state) => Hash::make($state)) // Encrypt password
                     ->hiddenOn('edit'),
-                Forms\Components\TextInput::make('address')->maxLength(255),
-                Forms\Components\TextInput::make('city')->maxLength(255),
-                Forms\Components\TextInput::make('country')->maxLength(255),
-                Forms\Components\TextInput::make('postcode')
+                TextInput::make('address')->maxLength(255),
+                TextInput::make('city')->maxLength(255),
+                TextInput::make('country')->maxLength(255),
+                TextInput::make('postcode')
                     ->maxLength(20)
                     ->dehydrateStateUsing(fn ($state) => str_replace(' ', '', $state)) // Remove all spaces
                     ->live(),
+                Select::make('agencies')
+                    ->relationship('agencies', 'name') // Defines the many-to-many relation
+                    ->multiple() // Allows multiple agencies
+                    ->searchable() // Enables search in the dropdown
+                    ->preload(), // Preloads options for a better UX
             ]);
     }
 
@@ -67,6 +74,8 @@ class UserResource extends Resource
                 TextColumn::make('city')->sortable()->sortable(),
                 TextColumn::make('country')->sortable()->sortable(),
                 TextColumn::make('postcode')->sortable()->sortable(),
+                TextColumn::make('agencies.name')
+                    ->badge(),
             ])
             ->filters([
                 //

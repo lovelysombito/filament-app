@@ -6,9 +6,13 @@ use App\Filament\Resources\AgencyResource\Pages;
 use App\Filament\Resources\AgencyResource\RelationManagers;
 use App\Models\Agency;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -23,36 +27,36 @@ class AgencyResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('address')
+                TextInput::make('address')
                     ->maxLength(255),
-                Forms\Components\TextInput::make('city')
+                TextInput::make('city')
                     ->maxLength(255),
-                Forms\Components\TextInput::make('country')
+                TextInput::make('country')
                     ->maxLength(255),
-                Forms\Components\TextInput::make('postcode')
+                TextInput::make('postcode')
                     ->maxLength(20)
                     ->dehydrateStateUsing(fn ($state) => str_replace(' ', '', $state)) // Remove all spaces
                     ->live(),
-                Forms\Components\TextInput::make('number_of_users')
+                TextInput::make('number_of_users')
                     ->numeric()
                     ->minValue(0)
                     ->maxValue(1000)
                     ->required(),
-                Forms\Components\DatePicker::make('date_of_information')
+                DatePicker::make('date_of_information')
                     ->required()
                     ->native(false)
                     ->minDate('1975-01-01')
                     ->maxDate(now()),
-                Forms\Components\Select::make('business_type')
+                Select::make('business_type')
                     ->options([
                         'UK' => 'UK',
                         'Europe' => 'Europe',
                     ])
                     ->required(),
-                Forms\Components\TextInput::make('company_number')
+                TextInput::make('company_number')
                     ->required()
                     ->label('Company Number')
                     ->maxLength(14)
@@ -62,10 +66,15 @@ class AgencyResource extends Resource
                         default => '',
                     })
                     ->helperText('UK: 11 digits | Europe: 14 alphanumeric'),
-                Forms\Components\TextInput::make('email')
+                TextInput::make('email')
                     ->email()
                     ->required()
                     ->maxLength(255),
+                Select::make('users')
+                    ->relationship('users', 'first_name') // Defines the many-to-many relation
+                    ->multiple() // Allows multiple users
+                    ->searchable() // Enables search in the dropdown
+                    ->preload(),
             ]);
     }
 
@@ -73,16 +82,18 @@ class AgencyResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('email')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('address')->sortable(),
-                Tables\Columns\TextColumn::make('city')->sortable(),
-                Tables\Columns\TextColumn::make('country')->sortable(),
-                Tables\Columns\TextColumn::make('postcode')->sortable(),
-                Tables\Columns\TextColumn::make('number_of_users')->sortable(),
-                Tables\Columns\TextColumn::make('date_of_information')->date()->sortable(),
-                Tables\Columns\TextColumn::make('business_type')->sortable(),
-                Tables\Columns\TextColumn::make('company_number')->sortable()
+                TextColumn::make('name')->sortable()->searchable(),
+                TextColumn::make('email')->sortable()->searchable(),
+                TextColumn::make('address')->sortable(),
+                TextColumn::make('city')->sortable(),
+                TextColumn::make('country')->sortable(),
+                TextColumn::make('postcode')->sortable(),
+                TextColumn::make('number_of_users')->sortable(),
+                TextColumn::make('date_of_information')->date()->sortable(),
+                TextColumn::make('business_type')->sortable(),
+                TextColumn::make('company_number')->sortable(),
+                TextColumn::make('users.first_name')
+                ->badge(),
             ])
             ->filters([
                 //
